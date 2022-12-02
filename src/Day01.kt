@@ -1,38 +1,43 @@
+import kotlin.time.ExperimentalTime
+
+@OptIn(ExperimentalTime::class)
 fun main() {
-    fun part1(input: List<String>): Int {
-        var mostCalories = 0
-        input.map { it.toIntOrNull() }.fold(0) {
-            acc, el ->
-            if (el == null) {
-                if (mostCalories < acc) {
-                    mostCalories = acc
-                }
-                0
-            } else {
-                acc+el
-            }
-        }
-        return mostCalories
-    }
+	fun parseInput(input: String): List<Int> = input
+		.split("\n\n")
+		.map { elv -> elv.lines().sumOf { it.toInt() } }
 
-    fun part2(input: List<String>): Int {
-        val calories = mutableListOf<Int>()
-        input.map { it.toIntOrNull() }
-            .fold(0) { acc, el ->
-                if(el == null) {
-                    calories.add(acc)
-                    0
-                }
-                else acc+el
-            }
-        return calories.sortedDescending().take(3).sum()
-    }
+	fun topNElves(elves: List<Int>, n: Int): Int {
+		fun findTopN(n: Int, element: List<Int>): List<Int> {
+			if (element.size == n) return element
 
-    // test if implementation meets criteria from the description, like:
-    // val testInput = readInput("Day01_test")
-    // check(part1(testInput) == 1)
+			val small = mutableListOf<Int>()
+			val equal = mutableListOf<Int>()
+			val big = mutableListOf<Int>()
 
-    val input = readInput("Day01")
-    println(part1(input))
-    println(part2(input))
+			val x = element.random()
+			element.forEach {
+				if (it < x) small.add(it)
+				if (it == x) equal.add(it)
+				if (it > x) big.add(it)
+			}
+
+			if (big.size >= n) return findTopN(n, big)
+			if (equal.size + big.size >= n) return (equal + big).takeLast(n)
+			return findTopN(n - equal.size - big.size, small) + equal + big
+		}
+
+		return findTopN(n, elves).sum()
+	}
+
+	fun part1(input: String): Int = topNElves(parseInput(input), 1)
+	fun part2(input: String): Int = topNElves(parseInput(input), 3)
+
+	// test if implementation meets criteria from the description, like:
+	// val testInput = readInputByLines("Day01_test")
+	// check(part1(testInput) == 1)
+
+	val input = readInput("Day01")
+
+	println(part1(input))
+	println(part2(input))
 }
